@@ -1,0 +1,54 @@
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+#include<Wire.h>
+#include <NewPing.h>
+
+const int MPU1=0x68, MPU2=0x69;
+
+int16_t AcX1,AcY1,AcZ1,Tmp1,GyX1,GyY1,GyZ1;
+int16_t AcX2,AcY2,AcZ2,Tmp2,GyX2,GyY2,GyZ2;
+
+RF24 myRF24 (7, 8);
+byte address[6] = "00001";
+
+//ultrasuoni
+#define PIN_TRIGGER 13
+#define PIN_ECHO 12
+#define MASSIMO 20
+
+NewPing sonar(PIN_TRIGGER,PIN_ECHO,MASSIMO);
+
+//gyroscopes
+
+void setup (){
+  //serial begin
+  Serial.begin(9600);
+
+  //RC trasmission begin
+  myRF24.begin();
+  myRF24.openWritingPipe(address);
+  myRF24.setPALevel(RF24_PA_MIN);
+  myRF24.stopListening();
+
+  //set speed to 10
+  String sp = "sp10"; 
+  myRF24.write(&sp, sizeof(sp));
+}
+
+void loop (){
+  //ultrasuoni
+  int readSonar = sonar.ping_cm();
+  //tranform cm in °, on 10cm
+  readSonar *= 18;
+  Serial.println(readSonar);
+  String posA = "s1" + String(readSonar);
+  
+  //RC
+  char text[5] = "Prova";
+ 
+  myRF24.write(&text, sizeof(text));
+ 
+  Serial.println(text);
+  delay(2000);
+}
